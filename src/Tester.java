@@ -3,8 +3,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
-import javax.swing.JOptionPane;
-
 import org.json.simple.JSONObject;
 
 public class Tester {
