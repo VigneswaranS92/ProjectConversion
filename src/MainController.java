@@ -293,10 +293,13 @@ public class MainController implements ActionListener {
 		return Jobj;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void writeFile(String fileName, JSONObject data) {
 		try {
+			JSONObject mainObj = new JSONObject();
+			mainObj.put(fileName, data);
 			FileWriter myWriter = new FileWriter(fileName+"_Json_Elements.js");
-			myWriter.write(fileName + ": {" + data.toJSONString() + "}");
+			myWriter.write(mainObj.toJSONString());
 			myWriter.close();
 			JOptionPane.showMessageDialog(null, "JSON Successfully Created.");
 			System.out.println("JSON Successfully Created.");
