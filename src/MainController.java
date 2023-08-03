@@ -156,15 +156,20 @@ public class MainController implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(comboBox.getSelectedItem().toString().equalsIgnoreCase("web")) {
+				if(JSFile!=null) {
 				System.out.println("In file conversion..");
 				String newFileName = fnameTxt.getText();
 				JSONObject obj = createElementJson(readFile(JSFile.getAbsolutePath()));
 				writeFile(newFileName, obj);
 				}
+				else 
+					JOptionPane.showMessageDialog(null, "No files are selected. Please try again.");
+				}
 				else if(comboBox.getSelectedItem().toString().equalsIgnoreCase("mobile")) {
-					System.out.println("In file conversion..");
-					String newFileName = fnameTxt.getText();
-					readFile(JSFile.getAbsolutePath());
+					JOptionPane.showMessageDialog(null, "Oops!!. Still in Development.");
+					//System.out.println("In file conversion..");
+					//String newFileName = fnameTxt.getText();
+					//readFile(JSFile.getAbsolutePath());
 					//JSONObject obj = createElementJson(readFile(JSFile.getAbsolutePath()));
 					//writeFile(newFileName, obj);
 					}
@@ -236,7 +241,7 @@ public class MainController implements ActionListener {
 			Scanner myReader = new Scanner(myObj);
 			while (myReader.hasNextLine()) {
 				data.add(myReader.nextLine());
-				System.out.println(data);
+				//System.out.println(data);
 			}
 			myReader.close();
 		} catch (Exception e) {
