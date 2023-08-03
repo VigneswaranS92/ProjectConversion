@@ -19,6 +19,7 @@ import java.util.Scanner;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -34,8 +35,8 @@ import org.json.simple.JSONObject;
 public class MainController implements ActionListener {
 	File JSFile = null;
 	String selectedFileName = "";
-	JLabel selectedFile;
-
+	JLabel selectedFile, uploadFile;
+	final JComboBox<String> comboBox ;
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		new MainController();
@@ -79,14 +80,18 @@ public class MainController implements ActionListener {
 
 		bodyPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		bodyPanel2.setBackground(new Color(102, 153, 235));
-		bodyPanel2.setSize(screenWidth - 50, screenHeight);
+		bodyPanel2.setSize(screenWidth, screenHeight);
 		bodyPanel2.setBounds(70, 250, screenWidth - 150, screenHeight);
 
 		selectedFile = new JLabel();
 		selectedFile.setForeground(Color.white);
 		selectedFile.setFont(new Font("MV Boli", Font.PLAIN, 18));
 
-		JButton selectFileButton = new JButton("Select a JS File");
+		uploadFile = new JLabel("Select a JS File to Upload :   ");
+		uploadFile.setForeground(Color.white);
+		uploadFile.setFont(new Font("MV Boli", Font.PLAIN, 18));
+		
+		JButton selectFileButton = new JButton("Upload");
 		selectFileButton.addActionListener(this);
 		selectFileButton.setOpaque(true);
 
@@ -97,7 +102,7 @@ public class MainController implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JSFile = uploadAFile();
-				selectedFile.setText(JSFile.getAbsolutePath());
+				selectedFile.setText("  Selected File : "+JSFile.getAbsolutePath());
 			}
 		});
 
@@ -135,8 +140,8 @@ public class MainController implements ActionListener {
 		fname = new JLabel("File Name *: ");
 		fname.setForeground(Color.white);
 		fname.setFont(new Font("MV Boli", Font.PLAIN, 18));
-		fnameTxt = new JTextField("Enter the Converted File Name");
-		fnameTxt.setPreferredSize(new Dimension(300, 50));
+		fnameTxt = new JTextField("Enter the name of the converted file");
+		fnameTxt.setPreferredSize(new Dimension(300, 40));
 		fnameTxt.setBounds(80, 100, 200, 30);
 		fnameTxt.addFocusListener(new MyFocusListener());
 
@@ -150,20 +155,39 @@ public class MainController implements ActionListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if(comboBox.getSelectedItem().toString().equalsIgnoreCase("web")) {
 				System.out.println("In file conversion..");
 				String newFileName = fnameTxt.getText();
 				JSONObject obj = createElementJson(readFile(JSFile.getAbsolutePath()));
-
 				writeFile(newFileName, obj);
-
+				}
+				else if(comboBox.getSelectedItem().toString().equalsIgnoreCase("mobile")) {
+					System.out.println("In file conversion..");
+					String newFileName = fnameTxt.getText();
+					readFile(JSFile.getAbsolutePath());
+					//JSONObject obj = createElementJson(readFile(JSFile.getAbsolutePath()));
+					//writeFile(newFileName, obj);
+					}
 			}
 		});
-
+		
+		JLabel deviceSelection = new JLabel("Select the device : ");
+		deviceSelection.setVisible(true);
+		deviceSelection.setForeground(Color.white);
+		deviceSelection.setFont(new Font("MV Boli", Font.PLAIN, 18));
+		String[] choices ={"Web","Mobile"};
+		comboBox = new JComboBox<String>(choices);
+		comboBox.setMaximumSize(comboBox.getPreferredSize());
+		comboBox.setEditable(false);
+		
+		bodyPanel.add(uploadFile);
 		bodyPanel.add(selectFileButton);
 		bodyPanel.add(selectedFile);
-
+		
 		bodyPanel2.add(fname);
 		bodyPanel2.add(fnameTxt);
+		bodyPanel2.add(deviceSelection);
+		bodyPanel2.add(comboBox);
 		bodyPanel2.add(convertFileButton);
 
 		mainFrame.add(headerPanel);
@@ -212,6 +236,7 @@ public class MainController implements ActionListener {
 			Scanner myReader = new Scanner(myObj);
 			while (myReader.hasNextLine()) {
 				data.add(myReader.nextLine());
+				System.out.println(data);
 			}
 			myReader.close();
 		} catch (Exception e) {
@@ -265,7 +290,7 @@ public class MainController implements ActionListener {
 
 	public void writeFile(String fileName, JSONObject data) {
 		try {
-			FileWriter myWriter = new FileWriter(fileName+"_Json_Elements");
+			FileWriter myWriter = new FileWriter(fileName+"_Json_Elements.js");
 			myWriter.write(fileName + ": {" + data.toJSONString() + "}");
 			myWriter.close();
 			JOptionPane.showMessageDialog(null, "JSON Successfully Created.");
