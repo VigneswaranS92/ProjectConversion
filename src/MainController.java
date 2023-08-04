@@ -13,10 +13,10 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
@@ -39,6 +39,8 @@ public class MainController implements ActionListener {
 	String selectedFileName = "";
 	JLabel selectedFile, uploadFile;
 	final JComboBox<String> comboBox ;
+	static List<String> androidSelectors;
+	static List<String> iOSSelectors;
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		new MainController();
@@ -157,24 +159,22 @@ public class MainController implements ActionListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				String newFileName = fnameTxt.getText();
+				JSONObject obj=null;
 				if(comboBox.getSelectedItem().toString().equalsIgnoreCase("web")) {
 				if(JSFile!=null) {
 				System.out.println("In file conversion..");
-				String newFileName = fnameTxt.getText();
-				JSONObject obj = createElementJson(readFile(JSFile.getAbsolutePath()));
-				writeFile(newFileName, obj);
+				 obj = createElementJson(readFile(JSFile.getAbsolutePath()));
 				}
 				else 
 					JOptionPane.showMessageDialog(null, "No files are selected. Please try again.");
 				}
 				else if(comboBox.getSelectedItem().toString().equalsIgnoreCase("mobile")) {
-					JOptionPane.showMessageDialog(null, "Oops!!. Still in Development.");
-					//System.out.println("In file conversion..");
-					//String newFileName = fnameTxt.getText();
-					//readFile(JSFile.getAbsolutePath());
-					//JSONObject obj = createElementJson(readFile(JSFile.getAbsolutePath()));
-					//writeFile(newFileName, obj);
+					System.out.println("In Mobile file conversion..");
+					createiOSandAndroidSelectorsList(JSFile.getAbsolutePath());
+					 obj = createMobileElementJson(readFile(JSFile.getAbsolutePath()));
 					}
+				writeFile(newFileName, obj);
 			}
 		});
 		
@@ -236,7 +236,7 @@ public class MainController implements ActionListener {
 		return selectedFile;
 	}
 
-	public List<String> readFile(String filePath) {
+	public static List<String> readFile(String filePath) {
 		List<String> data = new LinkedList<String>();
 		try {
 			File myObj = new File(filePath);
@@ -254,7 +254,7 @@ public class MainController implements ActionListener {
 
 	@SuppressWarnings({ "unchecked" })
 	public JSONObject createElementJson(List<String> incomingData) {
-		JSONObject Jobj = new JSONObject();;
+		JSONObject Jobj = new JSONObject();
 		try {
 			String elementName = "", elementValue = "";
 			for (int i = 0; i < incomingData.size(); i++) {
@@ -301,12 +301,142 @@ public class MainController implements ActionListener {
 		return Jobj;
 	}
 
+	
+	public static void createiOSandAndroidSelectorsList(String filePath) {
+		List<String> listData = readFile(filePath);
+		androidSelectors = new ArrayList<String>();
+		iOSSelectors = new ArrayList<String>();
+		for (int i = 0; i < listData.size(); i++) {
+			if (listData.get(i).contains("ANDROID_SELECTORS")) {
+				int j = 0;
+				for (j = i; j < listData.size(); j++) {
+					androidSelectors.add(listData.get(j));
+					if (listData.get(j).contains("};"))
+						break;
+				}
+				break;
+			}
+		}
+		for (int i = 0; i < listData.size(); i++) {
+			if (listData.get(i).contains("IOS_SELECTORS")) {
+				int j = 0;
+				for (j = i; j < listData.size(); j++) {
+					iOSSelectors.add(listData.get(j));
+					if (listData.get(j).contains("};"))
+						break;
+				}
+				break;
+			}
+		}
+
+	}
+	
+	@SuppressWarnings({ "unchecked"})
+	public static JSONObject createMobileElementJson(List<String> incomingData) {
+		JSONObject Jobj = new JSONObject();
+		try {
+			String elementName = "", androidElementValue = "", iosElementValue = "", elementData = "";
+			boolean isGetMethod = false;
+			for (int i = 0; i < incomingData.size(); i++) {
+				if (incomingData.get(i).contains("get ")) {
+					elementName = incomingData.get(i).replace("get ", "").replace("()", "").replace("{", "").trim();
+					isGetMethod = true;
+				}
+				if (isGetMethod) {
+
+					if (incomingData.get(i).contains("ANDROID_SELECTORS")) {
+
+						elementData = incomingData.get(i).split("ANDROID_SELECTORS.")[1];
+						elementData = elementData.replaceAll(";", "").trim();
+						elementData = elementData.replaceAll("\\)", "").trim();
+						for (String str : androidSelectors) {
+
+							if (str.contains(elementData))
+								androidElementValue = str.trim().split(elementData)[1];
+							androidElementValue = androidElementValue.replaceAll(":", "").replace(",", "").trim();
+							androidElementValue = androidElementValue.replaceAll(";", "").replace(",", "").trim();
+						}
+						// Hanlde single quote
+						if (androidElementValue.contains("\'"))
+							androidElementValue = androidElementValue.split("\'")[1].trim();
+
+						// Handle double quotes
+						else if (androidElementValue.contains("\""))
+							androidElementValue = androidElementValue.split("\"")[1].trim();
+						
+
+						androidElementValue = Pattern.compile("\"").matcher(androidElementValue).replaceAll("'");
+						// elementValue= elementValue.replace('’', '\'');
+
+						androidElementValue = Pattern.compile("[\u2018\u2019\u201a\u201b\u275b\u275c]")
+								.matcher(androidElementValue).replaceAll("'");
+	
+					}
+					if (incomingData.get(i).contains("IOS_SELECTORS")) {
+
+						elementData = incomingData.get(i).split("IOS_SELECTORS.")[1];
+						elementData = elementData.replaceAll(";", "").trim();
+						elementData = elementData.replaceAll("\\)", "").trim();
+						
+						for (String str : iOSSelectors) {
+							if (str.contains(elementData))
+								iosElementValue = str.trim().split(elementData)[1];
+							iosElementValue = iosElementValue.replaceAll(":", "").replace(",", "").trim();
+							
+							
+						}
+						// Hanlde single quote
+						if (iosElementValue.contains("\'"))
+							iosElementValue = iosElementValue.split("\'")[1].trim();
+						
+						// Handle double quotes
+						else if (iosElementValue.contains("\""))
+							iosElementValue = iosElementValue.split("\"")[1].trim();
+						
+
+						iosElementValue = Pattern.compile("\"").matcher(iosElementValue).replaceAll("'");
+						// elementValue= elementValue.replace('’', '\'');
+
+						iosElementValue = Pattern.compile("[\u2018\u2019\u201a\u201b\u275b\u275c]")
+								.matcher(iosElementValue).replaceAll("'");
+						
+					}
+					
+					if(incomingData.get(i).contains("return")) {
+						JSONObject elementJson = new JSONObject();
+						System.out.println("elementName :" + elementName);
+						System.out.println("android : "+androidElementValue);
+						System.out.println("ios : "+iosElementValue);
+						
+						elementJson.put("android:", androidElementValue);
+						elementJson.put("ios:", iosElementValue);
+						
+						Jobj.put(elementName,elementJson);
+						
+						androidElementValue="";
+						iosElementValue="";
+						isGetMethod=false;
+					}						
+				}
+
+			}
+		} catch (Exception e) {
+
+			System.out.println("An error occurred.");
+			e.printStackTrace();
+		}
+		return Jobj;
+	}
 	@SuppressWarnings("unchecked")
 	public void writeFile(String fileName, JSONObject data) {
 		try {
 			JSONObject mainObj = new JSONObject();
+			FileWriter myWriter =null;
 			mainObj.put(fileName, data);
-			FileWriter myWriter = new FileWriter(fileName+"_JSON_Elements.json");
+			if(comboBox.getSelectedItem().toString().equalsIgnoreCase("web"))
+			 myWriter = new FileWriter(fileName+"_JSON_WebElements.json");
+			else
+			 myWriter = new FileWriter(fileName+"_JSON_MobileElements.json");
 			myWriter.write(mainObj.toJSONString());
 			myWriter.close();
 			JOptionPane.showMessageDialog(null, "JSON Successfully Created.");
