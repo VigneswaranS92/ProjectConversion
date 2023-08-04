@@ -408,8 +408,8 @@ public class MainController implements ActionListener {
 						System.out.println("android : "+androidElementValue);
 						System.out.println("ios : "+iosElementValue);
 						
-						elementJson.put("android:", androidElementValue);
-						elementJson.put("ios:", iosElementValue);
+						elementJson.put("android", androidElementValue);
+						elementJson.put("ios", iosElementValue);
 						
 						Jobj.put(elementName,elementJson);
 						
