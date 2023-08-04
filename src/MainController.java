@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -273,7 +275,13 @@ public class MainController implements ActionListener {
 					// Hanlde single quote mac
 					else if (incomingData.get(i).contains("$(`"))
 						elementValue = elementData.split("\\$")[1].split("\\`")[1].trim();
-
+					
+					
+					elementValue= Pattern.compile("\"").matcher(elementValue).replaceAll("'");
+					//elementValue= elementValue.replace('’', '\'');
+					
+					elementValue = Pattern.compile("[\u2018\u2019\u201a\u201b\u275b\u275c]").matcher(elementValue).replaceAll("'");
+					
 					if (elementValue.length() != 0) {
 						Jobj.put(elementName, elementValue);
 						System.out.println(elementName);
@@ -298,7 +306,7 @@ public class MainController implements ActionListener {
 		try {
 			JSONObject mainObj = new JSONObject();
 			mainObj.put(fileName, data);
-			FileWriter myWriter = new FileWriter(fileName+"_Json_Elements.js");
+			FileWriter myWriter = new FileWriter(fileName+"_JSON_Elements.json");
 			myWriter.write(mainObj.toJSONString());
 			myWriter.close();
 			JOptionPane.showMessageDialog(null, "JSON Successfully Created.");
