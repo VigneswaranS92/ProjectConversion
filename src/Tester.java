@@ -86,12 +86,15 @@ public class Tester {
 						elementData = incomingData.get(i).split("ANDROID_SELECTORS.")[1];
 						elementData = elementData.replaceAll(";", "").trim();
 						elementData = elementData.replaceAll("\\)", "").trim();
+						System.out.println(elementData);
 						for (String str : androidSelectors) {
 
 							if (str.contains(elementData))
 								androidElementValue = str.trim().split(elementData)[1];
 							androidElementValue = androidElementValue.replaceAll(":", "").trim();
 							int position = androidElementValue.lastIndexOf(",");
+							System.out.println(position);
+							if(position!=-1)
 							androidElementValue = androidElementValue.substring(0,position+1);
 						}
 						// Hanlde single quote
