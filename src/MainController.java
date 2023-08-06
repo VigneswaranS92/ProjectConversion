@@ -26,6 +26,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -34,6 +36,9 @@ import javax.swing.text.JTextComponent;
 
 import org.json.simple.JSONObject;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 public class MainController implements ActionListener {
 	File JSFile = null;
 	String selectedFileName = "";
@@ -41,6 +46,7 @@ public class MainController implements ActionListener {
 	final JComboBox<String> comboBox ;
 	static List<String> androidSelectors;
 	static List<String> iOSSelectors;
+	String initialFileName;
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		new MainController();
@@ -50,10 +56,11 @@ public class MainController implements ActionListener {
 
 		MyFrame mainFrame = new MyFrame();
 		Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-		JLabel headerLabel, fname;
+		JLabel headerLabel, fname, outputLabel;
 
-		JPanel headerPanel, bodyPanel, bodyPanel2;
+		JPanel headerPanel, bodyPanel, bodyPanel2, bodyPanel3;
 		JTextField fnameTxt;
+		JTextArea outputArea;
 
 		// width will store the width of the screen
 		int screenWidth = (int) size.getWidth();
@@ -84,8 +91,14 @@ public class MainController implements ActionListener {
 
 		bodyPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		bodyPanel2.setBackground(new Color(102, 153, 235));
-		bodyPanel2.setSize(screenWidth, screenHeight);
-		bodyPanel2.setBounds(70, 250, screenWidth - 150, screenHeight);
+		bodyPanel2.setSize(screenWidth, screenHeight/12);
+		bodyPanel2.setBounds(70, 250, screenWidth - 150, screenHeight/12);
+		
+		bodyPanel3 = new JPanel();
+		bodyPanel3.setBackground(new Color(193, 230, 193));
+		bodyPanel3.setSize(screenWidth, screenHeight);
+		bodyPanel3.setBounds(70, 350, screenWidth - 150, screenHeight);
+		
 
 		selectedFile = new JLabel();
 		selectedFile.setForeground(Color.white);
@@ -94,6 +107,15 @@ public class MainController implements ActionListener {
 		uploadFile = new JLabel("Select a JS File to Upload :   ");
 		uploadFile.setForeground(Color.white);
 		uploadFile.setFont(new Font("MV Boli", Font.PLAIN, 18));
+		
+		
+		fname = new JLabel("Name of Parent JSON* : ");
+		fname.setForeground(Color.white);
+		fname.setFont(new Font("MV Boli", Font.PLAIN, 18));
+		fnameTxt = new JTextField("This is a Mandatory field..");
+		fnameTxt.setPreferredSize(new Dimension(300, 40));
+		fnameTxt.setBounds(80, 100, 200, 30);
+		fnameTxt.addFocusListener(new MyFocusListener());
 		
 		JButton selectFileButton = new JButton("Upload");
 		selectFileButton.addActionListener(this);
@@ -106,6 +128,7 @@ public class MainController implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JSFile = uploadAFile();
+				initialFileName=fnameTxt.getText();
 				selectedFile.setText("  Selected File : "+JSFile.getAbsolutePath());
 			}
 		});
@@ -140,15 +163,28 @@ public class MainController implements ActionListener {
 
 			}
 		});
-
-		fname = new JLabel("File Name *: ");
-		fname.setForeground(Color.white);
-		fname.setFont(new Font("MV Boli", Font.PLAIN, 18));
-		fnameTxt = new JTextField("Enter the name of the converted file");
-		fnameTxt.setPreferredSize(new Dimension(300, 40));
-		fnameTxt.setBounds(80, 100, 200, 30);
-		fnameTxt.addFocusListener(new MyFocusListener());
-
+		
+		JLabel deviceSelection = new JLabel("Select the device : ");
+		deviceSelection.setVisible(true);
+		deviceSelection.setForeground(Color.white);
+		deviceSelection.setFont(new Font("MV Boli", Font.PLAIN, 18));
+		String[] choices ={"Web","Mobile"};
+		comboBox = new JComboBox<String>(choices);
+		comboBox.setMaximumSize(comboBox.getPreferredSize());
+		comboBox.setEditable(false);
+		
+		outputLabel = new JLabel("Converted output JSON : ");
+		outputLabel.setForeground(Color.black);
+		outputLabel.setFont(new Font("MV Boli", Font.PLAIN, 18));
+		
+		outputArea = new JTextArea();
+		outputArea.setVisible(true);
+		outputArea.setPreferredSize(new Dimension(screenWidth - 200, screenHeight/2));
+		outputArea.setBounds(70, 400, screenWidth - 200, screenHeight/2);
+		
+		JScrollPane outputScrollablePane = new JScrollPane (outputArea, 
+				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);		
+		
 		JButton convertFileButton = new JButton("START CONVERSION");
 		convertFileButton.addActionListener(this);
 		convertFileButton.setOpaque(true);
@@ -160,32 +196,32 @@ public class MainController implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String newFileName = fnameTxt.getText();
+				if(initialFileName.equalsIgnoreCase(newFileName)|| newFileName=="" || newFileName==null)
+				JOptionPane.showMessageDialog(null, "Please check all the mandatory fields and try again..");
+				else {
 				JSONObject obj=null;
 				if(comboBox.getSelectedItem().toString().equalsIgnoreCase("web")) {
 				if(JSFile!=null) {
-				System.out.println("In file conversion..");
-				 obj = createElementJson(readFile(JSFile.getAbsolutePath()));
+				System.out.println("In Web JSON conversion..");
+				 obj = createElementJson(newFileName,readFile(JSFile.getAbsolutePath()));
 				}
 				else 
 					JOptionPane.showMessageDialog(null, "No files are selected. Please try again.");
 				}
 				else if(comboBox.getSelectedItem().toString().equalsIgnoreCase("mobile")) {
-					System.out.println("In Mobile file conversion..");
+					System.out.println("In Mobile JSON conversion..");
 					createiOSandAndroidSelectorsList(JSFile.getAbsolutePath());
-					 obj = createMobileElementJson(readFile(JSFile.getAbsolutePath()));
+					 obj = createMobileElementJson(newFileName,readFile(JSFile.getAbsolutePath()));
 					}
-				writeFile(newFileName, obj);
+				outputArea.setText("");
+				Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+				String jsonOutput = gson.toJson(obj);
+				outputArea.setText(jsonOutput);
+				//writeFile(newFileName, obj);
+			}
 			}
 		});
 		
-		JLabel deviceSelection = new JLabel("Select the device : ");
-		deviceSelection.setVisible(true);
-		deviceSelection.setForeground(Color.white);
-		deviceSelection.setFont(new Font("MV Boli", Font.PLAIN, 18));
-		String[] choices ={"Web","Mobile"};
-		comboBox = new JComboBox<String>(choices);
-		comboBox.setMaximumSize(comboBox.getPreferredSize());
-		comboBox.setEditable(false);
 		
 		bodyPanel.add(uploadFile);
 		bodyPanel.add(selectFileButton);
@@ -196,10 +232,15 @@ public class MainController implements ActionListener {
 		bodyPanel2.add(deviceSelection);
 		bodyPanel2.add(comboBox);
 		bodyPanel2.add(convertFileButton);
-
+		
+		bodyPanel3.add(outputLabel);
+		bodyPanel3.add(outputScrollablePane);
+		
 		mainFrame.add(headerPanel);
 		mainFrame.add(bodyPanel);
 		mainFrame.add(bodyPanel2);
+		mainFrame.add(bodyPanel3);
+		
 		mainFrame.setLayout(null);
 		mainFrame.pack();
 		mainFrame.setVisible(true);
@@ -253,8 +294,9 @@ public class MainController implements ActionListener {
 	}
 
 	@SuppressWarnings({ "unchecked" })
-	public JSONObject createElementJson(List<String> incomingData) {
+	public JSONObject createElementJson(String parentObjName,List<String> incomingData) {
 		JSONObject Jobj = new JSONObject();
+		JSONObject parentObj = new JSONObject();
 		try {
 			String elementName = "", elementValue = "";
 			for (int i = 0; i < incomingData.size(); i++) {
@@ -284,21 +326,22 @@ public class MainController implements ActionListener {
 					
 					if (elementValue.length() != 0) {
 						Jobj.put(elementName, elementValue);
-						System.out.println(elementName);
-						System.out.println(elementValue);
+						//System.out.println(elementName);
+						//System.out.println(elementValue);
 						elementName = "";
 						elementValue = "";
 					}
 				}
 
 			}
-
+			
+			parentObj.put(parentObjName, Jobj);
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, "An error while doing parsing. Please contact the developer.");
 			System.out.println("An error occurred.");
 			e.printStackTrace();
 		}
-		return Jobj;
+		return parentObj;
 	}
 
 	
@@ -332,8 +375,9 @@ public class MainController implements ActionListener {
 	}
 	
 	@SuppressWarnings({ "unchecked"})
-	public static JSONObject createMobileElementJson(List<String> incomingData) {
+	public static JSONObject createMobileElementJson(String parentObjName,List<String> incomingData) {
 		JSONObject Jobj = new JSONObject();
+		JSONObject parentObj = new JSONObject();
 		try {
 			String elementName = "", androidElementValue = "", iosElementValue = "", elementData = "";
 			boolean isGetMethod = false;
@@ -353,8 +397,9 @@ public class MainController implements ActionListener {
 
 							if (str.contains(elementData))
 								androidElementValue = str.trim().split(elementData)[1];
-							androidElementValue = androidElementValue.replaceAll(":", "").replace(",", "").trim();
-							androidElementValue = androidElementValue.replaceAll(";", "").replace(",", "").trim();
+							androidElementValue = androidElementValue.replaceAll(":", "").trim();
+							int position = androidElementValue.lastIndexOf(",");
+							androidElementValue = androidElementValue.substring(0,position+1);
 						}
 						// Hanlde single quote
 						if (androidElementValue.contains("\'"))
@@ -381,7 +426,9 @@ public class MainController implements ActionListener {
 						for (String str : iOSSelectors) {
 							if (str.contains(elementData))
 								iosElementValue = str.trim().split(elementData)[1];
-							iosElementValue = iosElementValue.replaceAll(":", "").replace(",", "").trim();
+							iosElementValue = iosElementValue.replaceAll(":", "").trim();
+							int position = iosElementValue.lastIndexOf(",");
+							iosElementValue = iosElementValue.substring(0,position+1);
 							
 							
 						}
@@ -420,24 +467,26 @@ public class MainController implements ActionListener {
 				}
 
 			}
+			parentObj.put(parentObjName, Jobj);
 		} catch (Exception e) {
 
 			System.out.println("An error occurred.");
 			e.printStackTrace();
 		}
-		return Jobj;
+		return parentObj;
 	}
+	
+	
 	@SuppressWarnings("unchecked")
 	public void writeFile(String fileName, JSONObject data) {
 		try {
-			JSONObject mainObj = new JSONObject();
+			
 			FileWriter myWriter =null;
-			mainObj.put(fileName, data);
 			if(comboBox.getSelectedItem().toString().equalsIgnoreCase("web"))
 			 myWriter = new FileWriter(fileName+"_JSON_WebElements.json");
 			else
 			 myWriter = new FileWriter(fileName+"_JSON_MobileElements.json");
-			myWriter.write(mainObj.toJSONString());
+			myWriter.write(data.toJSONString());
 			myWriter.close();
 			JOptionPane.showMessageDialog(null, "JSON Successfully Created.");
 			System.out.println("JSON Successfully Created.");

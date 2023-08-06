@@ -7,6 +7,9 @@ import java.util.regex.Pattern;
 
 import org.json.simple.JSONObject;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 public class Tester {
 	static List<String> androidSelectors;
 	static List<String> iOSSelectors;
@@ -59,6 +62,10 @@ public class Tester {
 				break;
 			}
 		}
+		/*for(String str:androidSelectors)
+			System.out.println(str);
+		for(String str:iOSSelectors)
+			System.out.println(str);*/
 
 	}
 
@@ -83,8 +90,9 @@ public class Tester {
 
 							if (str.contains(elementData))
 								androidElementValue = str.trim().split(elementData)[1];
-							androidElementValue = androidElementValue.replaceAll(":", "").replace(",", "").trim();
-							androidElementValue = androidElementValue.replaceAll(";", "").replace(",", "").trim();
+							androidElementValue = androidElementValue.replaceAll(":", "").trim();
+							int position = androidElementValue.lastIndexOf(",");
+							androidElementValue = androidElementValue.substring(0,position+1);
 						}
 						// Hanlde single quote
 						if (androidElementValue.contains("\'"))
@@ -128,13 +136,12 @@ public class Tester {
 
 						iosElementValue = Pattern.compile("[\u2018\u2019\u201a\u201b\u275b\u275c]")
 								.matcher(iosElementValue).replaceAll("'");
-						
 					}
 					if(incomingData.get(i).contains("return")) {
 						JSONObject elementJson = new JSONObject();
-						System.out.println("elementName :" + elementName);
-						System.out.println("android : "+androidElementValue);
-						System.out.println("ios : "+iosElementValue);
+						//System.out.println("elementName :" + elementName);
+						//System.out.println("android : "+androidElementValue);
+						//System.out.println("ios : "+iosElementValue);
 						
 						elementJson.put("android:", androidElementValue);
 						elementJson.put("ios:", iosElementValue);
@@ -148,6 +155,9 @@ public class Tester {
 				}
 
 			}
+			Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+			String jsonOutput = gson.toJson(Jobj);
+			System.out.println(jsonOutput);
 		} catch (Exception e) {
 
 			System.out.println("An error occurred.");
