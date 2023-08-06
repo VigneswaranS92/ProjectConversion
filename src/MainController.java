@@ -1,3 +1,4 @@
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -183,7 +184,8 @@ public class MainController implements ActionListener {
 		outputArea.setBounds(70, 400, screenWidth - 200, screenHeight/2);
 		
 		JScrollPane outputScrollablePane = new JScrollPane (outputArea, 
-				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);		
+				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);		
+		outputScrollablePane.setBounds(70, 400, screenWidth - 200, screenHeight/2);
 		
 		JButton convertFileButton = new JButton("START CONVERSION");
 		convertFileButton.addActionListener(this);
@@ -214,9 +216,15 @@ public class MainController implements ActionListener {
 					 obj = createMobileElementJson(newFileName,readFile(JSFile.getAbsolutePath()));
 					}
 				outputArea.setText("");
+				try {
 				Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 				String jsonOutput = gson.toJson(obj);
+				JOptionPane.showMessageDialog(null, "JSON Successfully Created.");
 				outputArea.setText(jsonOutput);
+				}catch(Exception e1) {
+					e1.printStackTrace();
+					JOptionPane.showMessageDialog(null, "Error in GSON parsing. Please contact the developer.");
+				}
 				//writeFile(newFileName, obj);
 			}
 			}
@@ -234,7 +242,7 @@ public class MainController implements ActionListener {
 		bodyPanel2.add(convertFileButton);
 		
 		bodyPanel3.add(outputLabel);
-		bodyPanel3.add(outputScrollablePane);
+		bodyPanel3.add(outputScrollablePane,BorderLayout.CENTER);
 		
 		mainFrame.add(headerPanel);
 		mainFrame.add(bodyPanel);
@@ -289,6 +297,7 @@ public class MainController implements ActionListener {
 			myReader.close();
 		} catch (Exception e) {
 			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "An error while reading the attached file. Please contact the developer.");
 		}
 		return data;
 	}
@@ -337,7 +346,7 @@ public class MainController implements ActionListener {
 			
 			parentObj.put(parentObjName, Jobj);
 		} catch (Exception e) {
-			JOptionPane.showMessageDialog(null, "An error while doing parsing. Please contact the developer.");
+			JOptionPane.showMessageDialog(null, "An error while creating JSON. Please contact the developer.");
 			System.out.println("An error occurred.");
 			e.printStackTrace();
 		}
@@ -349,6 +358,7 @@ public class MainController implements ActionListener {
 		List<String> listData = readFile(filePath);
 		androidSelectors = new ArrayList<String>();
 		iOSSelectors = new ArrayList<String>();
+		try {
 		for (int i = 0; i < listData.size(); i++) {
 			if (listData.get(i).contains("ANDROID_SELECTORS")) {
 				int j = 0;
@@ -371,7 +381,10 @@ public class MainController implements ActionListener {
 				break;
 			}
 		}
-
+		}catch(Exception e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "An error while creating JSON for mobile. Please contact the developer.");
+		}
 	}
 	
 	@SuppressWarnings({ "unchecked"})
@@ -469,7 +482,7 @@ public class MainController implements ActionListener {
 			}
 			parentObj.put(parentObjName, Jobj);
 		} catch (Exception e) {
-
+			JOptionPane.showMessageDialog(null, "An error while doing conversion for mobile JSON. Please contact the developer.");
 			System.out.println("An error occurred.");
 			e.printStackTrace();
 		}
@@ -492,7 +505,7 @@ public class MainController implements ActionListener {
 			System.out.println("JSON Successfully Created.");
 
 		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null, "An error while doing conversion. Please contact the developer.");
+			JOptionPane.showMessageDialog(null, "An error while creating a JSON file. Please contact the developer.");
 			System.out.println("An error occurred.");
 			e.printStackTrace();
 		}
