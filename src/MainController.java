@@ -69,12 +69,13 @@ public class MainController implements ActionListener {
 		// height will store the height of the screen
 		int screenHeight = (int) size.getHeight();
 
+		mainFrame.setForeground(Color.BLACK);
 		Border border = BorderFactory.createLineBorder(Color.white);
 		headerLabel = new JLabel();
 		headerLabel.setText("JSON Creator for Automation Framework Migration");
 		headerLabel.setHorizontalTextPosition(JLabel.LEFT);
 		headerLabel.setForeground(Color.BLACK);
-		headerLabel.setFont(new Font("MV Boli", Font.BOLD, 30));
+		headerLabel.setFont(new Font("Chalkboard SE", Font.ITALIC, 50));
 		headerLabel.setIconTextGap(80);
 		headerLabel.setBorder(border);
 		headerLabel.setVerticalAlignment(JLabel.TOP);
@@ -117,6 +118,19 @@ public class MainController implements ActionListener {
 		fnameTxt.setBounds(80, 100, 200, 30);
 		fnameTxt.addFocusListener(new MyFocusListener());
 
+		outputLabel = new JLabel("Converted output JSON : ");
+		outputLabel.setForeground(Color.black);
+		outputLabel.setFont(new Font("MV Boli", Font.PLAIN, 18));
+
+		outputArea = new JTextArea();
+		outputArea.setVisible(true);
+		outputArea.setPreferredSize(new Dimension(screenWidth - 250, screenHeight / 2));
+		outputArea.setBounds(70, 400, screenWidth - 250, screenHeight / 2);
+
+		JScrollPane outputScrollablePane = new JScrollPane(outputArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		outputScrollablePane.setBounds(70, 400, screenWidth - 200, screenHeight / 2);
+		
 		JButton selectFileButton = new JButton("Upload");
 		selectFileButton.addActionListener(this);
 		selectFileButton.setOpaque(true);
@@ -128,8 +142,10 @@ public class MainController implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JSFile = uploadAFile();
-				initialFileName = fnameTxt.getText();
+				initialFileName = "This is a Mandatory field..";
 				selectedFile.setText("  Selected File : " + JSFile.getAbsolutePath());
+				outputArea.setText("");
+				
 			}
 		});
 
@@ -173,18 +189,7 @@ public class MainController implements ActionListener {
 		comboBox.setMaximumSize(comboBox.getPreferredSize());
 		comboBox.setEditable(false);
 
-		outputLabel = new JLabel("Converted output JSON : ");
-		outputLabel.setForeground(Color.black);
-		outputLabel.setFont(new Font("MV Boli", Font.PLAIN, 18));
-
-		outputArea = new JTextArea();
-		outputArea.setVisible(true);
-		outputArea.setPreferredSize(new Dimension(screenWidth - 200, screenHeight / 2));
-		outputArea.setBounds(70, 400, screenWidth - 200, screenHeight / 2);
-
-		JScrollPane outputScrollablePane = new JScrollPane(outputArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		outputScrollablePane.setBounds(70, 400, screenWidth - 200, screenHeight / 2);
+		
 
 		JButton convertFileButton = new JButton("START CONVERSION");
 		convertFileButton.addActionListener(this);
