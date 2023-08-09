@@ -37,6 +37,9 @@ import javax.swing.text.JTextComponent;
 
 import org.json.simple.JSONObject;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 public class MainController implements ActionListener {
 	File JSFile = null;
 	String selectedFileName = "";
@@ -216,12 +219,14 @@ public class MainController implements ActionListener {
 						}
 						outputArea.setText("");
 						try {
-							/*
-							 * Gson gson = new
-							 * GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create(); String
-							 * jsonOutput = gson.toJson(obj); JOptionPane.showMessageDialog(null,
-							 * "JSON Successfully Created."); outputArea.setText(jsonOutput);
-							 */
+							
+							/*  Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create(); String
+							  jsonOutput = gson.toString(); 
+							  
+							  outputArea.setText(jsonOutput);*/
+							
+							  JOptionPane.showMessageDialog(null,
+									  "JSON Successfully Created."); 
 							for (String data : printList) {
 								outputArea.append(data);
 								outputArea.append("\n");
@@ -636,7 +641,7 @@ public class MainController implements ActionListener {
 						if (androidElementValue == "")
 							finalData.add("android : " + "''" + ",");
 						else
-							finalData.add("android : " + androidElementValue);
+							finalData.add("android : " + androidElementValue+",");
 						if (iosElementValue == "")
 							finalData.add("ios : " + "''");
 						else
