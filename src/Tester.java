@@ -18,7 +18,7 @@ public class Tester {
 		// JSONObject jobj=
 		// createElementJson(readFile("/Users/vigneswarans/Desktop/audio.screen.js"));
 		createiOSandAndroidSelectorsList();
-		createMobileElementJson(readFile("/Users/vigneswarans/Desktop/audio.screen.js"));
+		createMobileElementJson(readFile("/Users/vigneswarans/Visual Code/tcoe-project-seaton-mobile/page-objects/mobile/profile.screen.js"));
 	}
 
 	public static List<String> readFile(String filePath) {
@@ -37,7 +37,7 @@ public class Tester {
 	}
 
 	public static void createiOSandAndroidSelectorsList() {
-		List<String> listData = readFile("/Users/vigneswarans/Desktop/audio.screen.js");
+		List<String> listData = readFile("/Users/vigneswarans/Visual Code/tcoe-project-seaton-mobile/page-objects/mobile/profile.screen.js");
 		androidSelectors = new ArrayList<String>();
 		iOSSelectors = new ArrayList<String>();
 		for (int i = 0; i < listData.size(); i++) {
@@ -62,10 +62,6 @@ public class Tester {
 				break;
 			}
 		}
-		/*for(String str:androidSelectors)
-			System.out.println(str);
-		for(String str:iOSSelectors)
-			System.out.println(str);*/
 
 	}
 
@@ -73,6 +69,7 @@ public class Tester {
 	public static JSONObject createMobileElementJson(List<String> incomingData) {
 		JSONObject Jobj = new JSONObject();
 		try {
+			ArrayList <String> finalData = new ArrayList<String>();
 			String elementName = "", androidElementValue = "", iosElementValue = "", elementData = "";
 			boolean isGetMethod = false;
 			for (int i = 0; i < incomingData.size(); i++) {
@@ -86,19 +83,21 @@ public class Tester {
 						elementData = incomingData.get(i).split("ANDROID_SELECTORS.")[1];
 						elementData = elementData.replaceAll(";", "").trim();
 						elementData = elementData.replaceAll("\\)", "").trim();
-						System.out.println(elementData);
+						
 						for (String str : androidSelectors) {
-
-							if (str.contains(elementData))
+							if (str.split(":")[0].trim().equalsIgnoreCase(elementData)) {
 								androidElementValue = str.trim().split(elementData)[1];
 							androidElementValue = androidElementValue.replaceAll(":", "").trim();
+							
 							int position = androidElementValue.lastIndexOf(",");
-							System.out.println(position);
 							if(position!=-1)
-							androidElementValue = androidElementValue.substring(0,position+1);
+							androidElementValue = androidElementValue.substring(0,position);
+							break;
+							}
+							//System.out.println("*********androidElementValue" +androidElementValue);*/
 						}
 						// Hanlde single quote
-						if (androidElementValue.contains("\'"))
+						/*if (androidElementValue.contains("\'"))
 							androidElementValue = androidElementValue.split("\'")[1].trim();
 
 						// Handle double quotes
@@ -111,6 +110,7 @@ public class Tester {
 
 						androidElementValue = Pattern.compile("[\u2018\u2019\u201a\u201b\u275b\u275c]")
 								.matcher(androidElementValue).replaceAll("'");
+								*/
 	
 					}
 					if (incomingData.get(i).contains("IOS_SELECTORS")) {
@@ -119,14 +119,16 @@ public class Tester {
 						elementData = elementData.replaceAll(";", "").trim();
 						elementData = elementData.replaceAll("\\)", "").trim();
 						for (String str : iOSSelectors) {
-							if (str.contains(elementData))
+							if (str.split(":")[0].trim().equalsIgnoreCase(elementData)) {
 								iosElementValue = str.trim().split(elementData)[1];
-							iosElementValue = iosElementValue.replaceAll(":", "").replace(",", "").trim();
-							
-							
-						}
+								iosElementValue = iosElementValue.replaceAll(":", "").trim();
+								int position = iosElementValue.lastIndexOf(",");
+								if(position!=-1)
+									iosElementValue = iosElementValue.substring(0,position);
+									break;
+							}
 						// Hanlde single quote
-						if (iosElementValue.contains("\'"))
+						/*if (iosElementValue.contains("\'"))
 							iosElementValue = iosElementValue.split("\'")[1].trim();
 						
 						// Handle double quotes
@@ -138,10 +140,11 @@ public class Tester {
 						// elementValue= elementValue.replace('’', '\'');
 
 						iosElementValue = Pattern.compile("[\u2018\u2019\u201a\u201b\u275b\u275c]")
-								.matcher(iosElementValue).replaceAll("'");
+								.matcher(iosElementValue).replaceAll("'");*/
+					}
 					}
 					if(incomingData.get(i).contains("return")) {
-						JSONObject elementJson = new JSONObject();
+						/*JSONObject elementJson = new JSONObject();
 						//System.out.println("elementName :" + elementName);
 						//System.out.println("android : "+androidElementValue);
 						//System.out.println("ios : "+iosElementValue);
@@ -150,7 +153,20 @@ public class Tester {
 						elementJson.put("ios:", iosElementValue);
 						
 						Jobj.put(elementName,elementJson);
+						*/
 						
+						finalData.add(elementName+":");
+						finalData.add("{");
+						
+						if(androidElementValue=="")
+							finalData.add("android : "+"''"+",");
+						else
+						finalData.add("android : "+androidElementValue+",");
+						if(iosElementValue=="")
+							finalData.add("ios : "+"''");
+						else
+						finalData.add("ios : "+iosElementValue);
+						finalData.add("},");
 						androidElementValue="";
 						iosElementValue="";
 						isGetMethod=false;
@@ -158,9 +174,8 @@ public class Tester {
 				}
 
 			}
-			Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-			String jsonOutput = gson.toJson(Jobj);
-			System.out.println(jsonOutput);
+			for(String str:finalData)
+			System.out.println(str);
 		} catch (Exception e) {
 
 			System.out.println("An error occurred.");

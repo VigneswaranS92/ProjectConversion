@@ -37,9 +37,6 @@ import javax.swing.text.JTextComponent;
 
 import org.json.simple.JSONObject;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 public class MainController implements ActionListener {
 	File JSFile = null;
 	String selectedFileName = "";
@@ -124,13 +121,14 @@ public class MainController implements ActionListener {
 
 		outputArea = new JTextArea();
 		outputArea.setVisible(true);
+		outputArea.setLineWrap(true);
 		outputArea.setPreferredSize(new Dimension(screenWidth - 250, screenHeight / 2));
 		outputArea.setBounds(70, 400, screenWidth - 250, screenHeight / 2);
 
 		JScrollPane outputScrollablePane = new JScrollPane(outputArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		outputScrollablePane.setBounds(70, 400, screenWidth - 200, screenHeight / 2);
-		
+
 		JButton selectFileButton = new JButton("Upload");
 		selectFileButton.addActionListener(this);
 		selectFileButton.setOpaque(true);
@@ -145,7 +143,7 @@ public class MainController implements ActionListener {
 				initialFileName = "This is a Mandatory field..";
 				selectedFile.setText("  Selected File : " + JSFile.getAbsolutePath());
 				outputArea.setText("");
-				
+
 			}
 		});
 
@@ -189,8 +187,6 @@ public class MainController implements ActionListener {
 		comboBox.setMaximumSize(comboBox.getPreferredSize());
 		comboBox.setEditable(false);
 
-		
-
 		JButton convertFileButton = new JButton("START CONVERSION");
 		convertFileButton.addActionListener(this);
 		convertFileButton.setOpaque(true);
@@ -203,26 +199,33 @@ public class MainController implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
 				String newFileName = fnameTxt.getText();
 				if (JSFile != null) {
-					if (initialFileName.equalsIgnoreCase(newFileName) || newFileName.length()==0)
+					if (initialFileName.equalsIgnoreCase(newFileName) || newFileName.length() == 0)
 						JOptionPane.showMessageDialog(null, "Please check all the mandatory fields and try again.");
 					else {
-						JSONObject obj = null;
+						
+						ArrayList<String> printList = new ArrayList<String>();
 						if (comboBox.getSelectedItem().toString().equalsIgnoreCase("web")) {
 
 							System.out.println("In Web JSON conversion..");
-							obj = createElementJson(newFileName, readFile(JSFile.getAbsolutePath()));
+							printList = createElementJson(newFileName, readFile(JSFile.getAbsolutePath()));
 
 						} else if (comboBox.getSelectedItem().toString().equalsIgnoreCase("mobile")) {
 							System.out.println("In Mobile JSON conversion..");
 							createiOSandAndroidSelectorsList(JSFile.getAbsolutePath());
-							obj = createMobileElementJson(newFileName, readFile(JSFile.getAbsolutePath()));
+							printList = createMobileElementList(newFileName, readFile(JSFile.getAbsolutePath()));
 						}
 						outputArea.setText("");
 						try {
-							Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-							String jsonOutput = gson.toJson(obj);
-							JOptionPane.showMessageDialog(null, "JSON Successfully Created.");
-							outputArea.setText(jsonOutput);
+							/*
+							 * Gson gson = new
+							 * GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create(); String
+							 * jsonOutput = gson.toJson(obj); JOptionPane.showMessageDialog(null,
+							 * "JSON Successfully Created."); outputArea.setText(jsonOutput);
+							 */
+							for (String data : printList) {
+								outputArea.append(data);
+								outputArea.append("\n");
+							}
 						} catch (Exception e1) {
 							e1.printStackTrace();
 							JOptionPane.showMessageDialog(null, "Error in GSON parsing. Please contact the developer.");
@@ -306,10 +309,10 @@ public class MainController implements ActionListener {
 		return data;
 	}
 
-	@SuppressWarnings({ "unchecked" })
-	public JSONObject createElementJson(String parentObjName, List<String> incomingData) {
-		JSONObject Jobj = new JSONObject();
-		JSONObject parentObj = new JSONObject();
+	@SuppressWarnings({ })
+	public ArrayList<String> createElementJson(String parentObjName, List<String> incomingData) {
+		ArrayList<String> finalData = new ArrayList<String>();
+		finalData.add(parentObjName + ":{");
 		try {
 			String elementName = "", elementValue = "";
 			for (int i = 0; i < incomingData.size(); i++) {
@@ -338,23 +341,25 @@ public class MainController implements ActionListener {
 							.replaceAll("'");
 
 					if (elementValue.length() != 0) {
-						Jobj.put(elementName, elementValue);
-						// System.out.println(elementName);
-						// System.out.println(elementValue);
-						elementName = "";
+
+						if (elementValue == "")
+							finalData.add(elementName + " : " + "'',");
+						else
+							finalData.add(elementName + " : \"" + elementValue + "\",");
 						elementValue = "";
+						elementData = "";
 					}
 				}
 
 			}
-
-			parentObj.put(parentObjName, Jobj);
+			finalData.add("},");
+			// parentObj.put(parentObjName, Jobj);
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, "An error while creating JSON. Please contact the developer.");
 			System.out.println("An error occurred.");
 			e.printStackTrace();
 		}
-		return parentObj;
+		return finalData;
 	}
 
 	public static void createiOSandAndroidSelectorsList(String filePath) {
@@ -527,4 +532,132 @@ public class MainController implements ActionListener {
 
 	}
 
+	public static ArrayList<String> createMobileElementList(String parentJsonName, List<String> incomingData) {
+		
+		ArrayList<String> finalData = new ArrayList<String>();
+		finalData.add(parentJsonName + ":{");
+		try {
+
+			String elementName = "", androidElementValue = "", iosElementValue = "", elementData = "";
+			boolean isGetMethod = false;
+			for (int i = 0; i < incomingData.size(); i++) {
+				if (incomingData.get(i).contains("get ")) {
+					elementName = incomingData.get(i).replace("get ", "").replace("()", "").replace("{", "").trim();
+					isGetMethod = true;
+				}
+				if (isGetMethod) {
+					if (incomingData.get(i).contains("ANDROID_SELECTORS")) {
+
+						elementData = incomingData.get(i).split("ANDROID_SELECTORS.")[1];
+						elementData = elementData.replaceAll(";", "").trim();
+						elementData = elementData.replaceAll("\\)", "").trim();
+
+						for (String str : androidSelectors) {
+							if (str.split(":")[0].trim().equalsIgnoreCase(elementData)) {
+								androidElementValue = str.trim().split(elementData)[1];
+								androidElementValue = androidElementValue.replaceAll(":", "").trim();
+								int position = androidElementValue.lastIndexOf(",");
+								if (position != -1)
+									androidElementValue = androidElementValue.substring(0, position);
+								break;
+							}
+							/*
+							 * int position = androidElementValue.lastIndexOf(","); if(position!=-1)
+							 * androidElementValue = androidElementValue.substring(0,position-1);
+							 * System.out.println("*********androidElementValue" +androidElementValue);
+							 */
+						}
+						// Hanlde single quote
+						/*
+						 * if (androidElementValue.contains("\'")) androidElementValue =
+						 * androidElementValue.split("\'")[1].trim();
+						 * 
+						 * // Handle double quotes else if (androidElementValue.contains("\""))
+						 * androidElementValue = androidElementValue.split("\"")[1].trim();
+						 * 
+						 * 
+						 * androidElementValue =
+						 * Pattern.compile("\"").matcher(androidElementValue).replaceAll("'"); //
+						 * elementValue= elementValue.replace('’', '\'');
+						 * 
+						 * androidElementValue =
+						 * Pattern.compile("[\u2018\u2019\u201a\u201b\u275b\u275c]")
+						 * .matcher(androidElementValue).replaceAll("'");
+						 */
+
+					}
+					if (incomingData.get(i).contains("IOS_SELECTORS")) {
+
+						elementData = incomingData.get(i).split("IOS_SELECTORS.")[1];
+						elementData = elementData.replaceAll(";", "").trim();
+						elementData = elementData.replaceAll("\\)", "").trim();
+						for (String str : iOSSelectors) {
+							if (str.split(":")[0].trim().equalsIgnoreCase(elementData)) {
+								iosElementValue = str.trim().split(elementData)[1];
+								iosElementValue = iosElementValue.replaceAll(":", "").trim();
+								int position = iosElementValue.lastIndexOf(",");
+								if (position != -1)
+									iosElementValue = iosElementValue.substring(0, position);
+								break;
+							}
+							// Hanlde single quote
+							/*
+							 * if (iosElementValue.contains("\'")) iosElementValue =
+							 * iosElementValue.split("\'")[1].trim();
+							 * 
+							 * // Handle double quotes else if (iosElementValue.contains("\""))
+							 * iosElementValue = iosElementValue.split("\"")[1].trim();
+							 * 
+							 * 
+							 * iosElementValue =
+							 * Pattern.compile("\"").matcher(iosElementValue).replaceAll("'"); //
+							 * elementValue= elementValue.replace('’', '\'');
+							 * 
+							 * iosElementValue = Pattern.compile("[\u2018\u2019\u201a\u201b\u275b\u275c]")
+							 * .matcher(iosElementValue).replaceAll("'");
+							 */
+						}
+					}
+					if (incomingData.get(i).contains("return")) {
+						/*
+						 * JSONObject elementJson = new JSONObject();
+						 * //System.out.println("elementName :" + elementName);
+						 * //System.out.println("android : "+androidElementValue);
+						 * //System.out.println("ios : "+iosElementValue);
+						 * 
+						 * elementJson.put("android:", androidElementValue); elementJson.put("ios:",
+						 * iosElementValue);
+						 * 
+						 * Jobj.put(elementName,elementJson);
+						 */
+
+						finalData.add(elementName + ":");
+						finalData.add("{");
+						if (androidElementValue == "")
+							finalData.add("android : " + "''" + ",");
+						else
+							finalData.add("android : " + androidElementValue);
+						if (iosElementValue == "")
+							finalData.add("ios : " + "''");
+						else
+							finalData.add("ios : " + iosElementValue);
+						finalData.add("},");
+						androidElementValue = "";
+						iosElementValue = "";
+						isGetMethod = false;
+					}
+				}
+
+			}
+
+			finalData.add("},");
+			for (String str : finalData)
+				System.out.println(str);
+		} catch (Exception e) {
+
+			System.out.println("An error occurred.");
+			e.printStackTrace();
+		}
+		return finalData;
+	}
 }
