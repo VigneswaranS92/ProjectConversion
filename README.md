@@ -1,4 +1,4 @@
-# ProjectConversion
+# JSONElementGenerator
 Java applet project for migrating web and mobile elements from old framework to new framework which uses elements in json format
 
 Follow the below steps to execute the jar file.
